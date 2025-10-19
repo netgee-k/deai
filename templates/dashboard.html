@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DE.AI - Your Writing Style Guardian</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #7c3aed;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --success: #059669;
+            --info: #339af0;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .auth-modal {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            width: 400px;
+            max-width: 90%;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .auth-tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .auth-form input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+        }
+        
+        .auth-form button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: none;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.1rem;
+            color: #94a3b8;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .editor-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--border);
+        }
+        
+        .analysis-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        
+        #text-input {
+            width: 100%;
+            height: 400px;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.6;
+            resize: vertical;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: border-color 0.2s;
+        }
+        
+        #text-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .score-display {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            background: conic-gradient(var(--success) 0% var(--score-percent), var(--border) var(--score-percent) 100%);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            background: var(--surface);
+            border-radius: 50%;
+        }
+        
+        .score-value {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .score-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .score-details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .score-detail {
+            text-align: center;
+        }
+        
+        .score-detail .value {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .issues-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        
+        .issue-item {
+            background: var(--bg);
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid var(--warning);
+            transition: transform 0.2s;
+        }
+        
+        .issue-item:hover {
+            transform: translateX(4px);
+        }
+        
+        .issue-item.high {
+            border-left-color: var(--danger);
+        }
+        
+        .issue-item.low {
+            border-left-color: var(--success);
+        }
+        
+        .issue-item.info {
+            border-left-color: var(--info);
+        }
+        
+        .issue-type {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+        
+        .issue-reason {
+            opacity: 0.8;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .issue-suggestion {
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        button.secondary {
+            background: var(--border);
+        }
+        
+        button.success {
+            background: var(--success);
+        }
+        
+        button.warning {
+            background: var(--warning);
+        }
+        
+        button.danger {
+            background: var(--danger);
+        }
+        
+        .training-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 1px solid var(--border);
+        }
+        
+        .file-upload {
+            border: 2px dashed #475569;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 15px;
+            transition: border-color 0.2s;
+        }
+        
+        .file-upload:hover {
+            border-color: var(--primary);
+        }
+        
+        .user-management {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        #user-id {
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            flex: 1;
+        }
+        
+        .dna-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 1px solid var(--border);
+        }
+        
+        .dna-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .dna-card {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--info);
+        }
+        
+        .dna-card h4 {
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        
+        .highlight {
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin: 0 1px;
+        }
+        
+        .highlight-formal { background-color: rgba(220, 38, 38, 0.3); }
+        .highlight-redundant { background-color: rgba(220, 38, 38, 0.3); }
+        .highlight-cliche { background-color: rgba(220, 38, 38, 0.3); }
+        .highlight-passive { background-color: rgba(255, 146, 43, 0.3); }
+        .highlight-rhythm { background-color: rgba(255, 217, 61, 0.3); }
+        .highlight-vocabulary { background-color: rgba(255, 217, 61, 0.3); }
+        .highlight-signature { background-color: rgba(81, 207, 102, 0.3); }
+        .highlight-creativity { background-color: rgba(51, 154, 240, 0.3); }
+        
+        .personality-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--primary);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+        
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .user-info {
+                position: static;
+                justify-content: center;
+                margin-top: 15px;
+            }
+        }
+        
+        .tab-container {
+            margin-top: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .real-time-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            margin-left: 5px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .websocket-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Overlay -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+                <div class="auth-tab" onclick="switchAuthTab('admin')">Admin</div>
+            </div>
+            
+            <div id="login-form" class="auth-form">
+                <h3 style="text-align: center; margin-bottom: 20px;">Welcome to DE.AI</h3>
+                <input type="text" id="username" placeholder="Username" value="gman">
+                <button onclick="login()">Enter DE.AI</button>
+                <p style="text-align: center; margin-top: 15px; color: #94a3b8; font-size: 0.9rem;">
+                    Enter any username to get started
+                </p>
+            </div>
+            
+            <div id="admin-form" class="auth-form" style="display: none;">
+                <h3 style="text-align: center; margin-bottom: 20px;">Admin Login</h3>
+                <input type="text" id="admin-username" placeholder="Username" value="admin">
+                <input type="password" id="admin-password" placeholder="Password" value="admin123">
+                <button onclick="adminLogin()">Admin Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div class="container" id="appContainer">
+        <div class="header">
+            <h1>DE.AI</h1>
+            <p>Your Writing Style Guardian</p>
+            <div class="subtitle">Make your writing sound LESS like AI and MORE like YOU</div>
+            
+            <div class="user-info">
+                <span>Welcome, <strong id="current-user">gman</strong></span>
+                <button onclick="logout()" class="secondary">Logout</button>
+                <button onclick="showAdminPanel()" class="warning" id="adminBtn" style="display: none;">Admin</button>
+            </div>
+        </div>
+        
+        <div class="user-management">
+            <input type="text" id="user-id" placeholder="Enter your user ID (e.g., 'gman')" value="gman">
+            <button onclick="loadUserProfile()" class="secondary">Load Profile</button>
+            <button onclick="clearUserProfile()" class="secondary">Clear</button>
+            <button onclick="trainStyle()" class="success">🔄 Train Style</button>
+        </div>
+        
+        <div class="main-grid">
+            <div class="editor-section">
+                <h2 class="section-title">
+                    Your Writing 
+                    <span class="real-time-indicator" id="realtimeIndicator" style="display: none;"></span>
+                </h2>
+                <textarea 
+                    id="text-input" 
+                    placeholder="Paste or type your writing here... 
+
+Try pasting some AI-generated text to see DE.AI in action. The tool will highlight AI patterns and suggest ways to make it sound more human and authentic to your style."
+                    oninput="debouncedAnalyze()"
+                ></textarea>
+                
+                <div class="controls">
+                    <button onclick="analyzeText()">
+                        <span>🔍</span> Deep Analysis
+                    </button>
+                    <button onclick="clearText()" class="secondary">
+                        <span>🗑️</span> Clear
+                    </button>
+                    <button onclick="loadExample()" class="secondary">
+                        <span>📚</span> Load Example
+                    </button>
+                    <button onclick="getWritingReport()" class="success">
+                        <span>📊</span> Writing Report
+                    </button>
+                    <button onclick="createWritingDNA()" class="info">
+                        <span>🧬</span> Create DNA
+                    </button>
+                </div>
+            </div>
+            
+            <div class="analysis-section">
+                <h2 class="section-title">Style Analysis</h2>
+                
+                <div class="score-display">
+                    <div class="score-circle" id="score-circle">
+                        <div class="score-value" id="score-value">-</div>
+                    </div>
+                    <div class="score-label">Humanity Score</div>
+                    <div class="score-details">
+                        <div class="score-detail">
+                            <div class="value" id="style-match">-</div>
+                            <div>Style Match</div>
+                        </div>
+                        <div class="score-detail">
+                            <div class="value" id="issues-count">0</div>
+                            <div>Issues</div>
+                        </div>
+                        <div class="score-detail">
+                            <div class="value" id="perplexity">-</div>
+                            <div>Perplexity</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title">Issues & Suggestions</div>
+                <div class="issues-list" id="issues-list">
+                    <div class="issue-item">
+                        <div class="issue-type">Start writing to begin analysis</div>
+                        <div class="issue-reason">DE.AI will help you identify AI patterns and improve your authentic voice</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('training')">Training & DNA</div>
+                <div class="tab" onclick="switchTab('report')">Writing Report</div>
+                <div class="tab" onclick="switchTab('users')">User Management</div>
+                <div class="tab" onclick="switchTab('admin-panel')" id="adminTab" style="display: none;">Admin Dashboard</div>
+            </div>
+            
+            <div class="tab-content active" id="training-tab">
+                <div class="training-section">
+                    <h2 class="section-title">Train Your Writing DNA</h2>
+                    <p>Upload your existing writing to teach DE.AI your unique style. The more you upload, the better it gets at recognizing your voice.</p>
+                    
+                    <div class="file-upload">
+                        <form id="upload-form">
+                            <input type="file" name="files" multiple accept=".txt,.md,.docx,.pdf" id="file-input">
+                            <div style="margin: 15px 0;">
+                                <button type="button" onclick="uploadDocuments()">📤 Upload & Analyze Documents</button>
+                            </div>
+                            <div id="upload-status"></div>
+                        </form>
+                    </div>
+                    
+                    <div class="dna-section" id="dna-section" style="display: none;">
+                        <h2 class="section-title">Your Writing DNA</h2>
+                        <div class="dna-grid" id="dna-grid">
+                            <!-- DNA metrics will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="report-tab">
+                <div class="training-section">
+                    <h2 class="section-title">Writing Report</h2>
+                    <div id="writing-report">
+                        <p>Load your writing DNA first to see your personalized report.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="users-tab">
+                <div class="training-section">
+                    <h2 class="section-title">User Profiles</h2>
+                    <div id="users-list">
+                        <p>Loading user profiles...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="admin-panel">
+                <div class="training-section">
+                    <h2 class="section-title">Admin Dashboard</h2>
+                    <div class="admin-stats" id="admin-stats">
+                        <!-- Admin stats will be populated here -->
+                    </div>
+                    <div id="admin-analytics">
+                        <h3 style="margin-bottom: 15px;">Analytics</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="dna-card">
+                                <h4>Recent Analyses</h4>
+                                <div id="recent-analyses"></div>
+                            </div>
+                            <div class="dna-card">
+                                <h4>Active Users</h4>
+                                <div id="active-users"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="websocket-status" id="websocketStatus">
+        <span>🔴 Offline</span>
+    </div>
+
+    <script>
+        // Global state
+        let analyzeTimeout;
+        let currentUserId = 'gman';
+        let authToken = null;
+        let isAdmin = false;
+        let websocket = null;
+        
+        // Authentication
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('admin-form').style.display = 'none';
+            
+            if (tab === 'login') {
+                document.querySelector('.auth-tab:nth-child(1)').classList.add('active');
+                document.getElementById('login-form').style.display = 'block';
+            } else {
+                document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
+                document.getElementById('admin-form').style.display = 'block';
+            }
+        }
+        
+        function login() {
+            const username = document.getElementById('username').value || 'gman';
+            currentUserId = username;
+            document.getElementById('current-user').textContent = username;
+            document.getElementById('user-id').value = username;
+            
+            // Hide auth, show app
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            
+            // Initialize WebSocket
+            initWebSocket();
+            
+            // Load initial data
+            loadUserProfiles();
+            getWritingReport();
+        }
+        
+        function adminLogin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            
+            fetch('/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    authToken = data.token;
+                    isAdmin = true;
+                    document.getElementById('adminBtn').style.display = 'block';
+                    document.getElementById('adminTab').style.display = 'block';
+                    login();
+                    loadAdminStats();
+                } else {
+                    alert('Admin login failed');
+                }
+            })
+            .catch(error => {
+                console.error('Admin login error:', error);
+                alert('Admin login error - using demo mode');
+                isAdmin = true;
+                document.getElementById('adminBtn').style.display = 'block';
+                document.getElementById('adminTab').style.display = 'block';
+                login();
+            });
+        }
+        
+        function logout() {
+            if (websocket) {
+                websocket.close();
+            }
+            document.getElementById('authOverlay').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+            isAdmin = false;
+            authToken = null;
+        }
+        
+        function showAdminPanel() {
+            switchTab('admin-panel');
+            loadAdminStats();
+        }
+        
+        // WebSocket for real-time analysis
+        function initWebSocket() {
+            try {
+                websocket = new WebSocket(`ws://${window.location.host}/ws/analyze`);
+                
+                websocket.onopen = () => {
+                    document.getElementById('websocketStatus').innerHTML = '<span>🟢 Real-time Active</span>';
+                    document.getElementById('realtimeIndicator').style.display = 'inline-block';
+                };
+                
+                websocket.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'analysis_update') {
+                        updateRealtimeAnalysis(data.analysis);
+                    }
+                };
+                
+                websocket.onclose = () => {
+                    document.getElementById('websocketStatus').innerHTML = '<span>🔴 Offline</span>';
+                    document.getElementById('realtimeIndicator').style.display = 'none';
+                    // Attempt reconnect after 5 seconds
+                    setTimeout(initWebSocket, 5000);
+                };
+                
+                websocket.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+                
+            } catch (error) {
+                console.error('WebSocket initialization failed:', error);
+            }
+        }
+        
+        function updateRealtimeAnalysis(analysis) {
+            // Update basic metrics in real-time
+            document.getElementById('score-value').textContent = Math.round(analysis.score || 50);
+            document.getElementById('score-circle').style.setProperty('--score-percent', `${analysis.score || 50}%`);
+            
+            if (analysis.real_perplexity) {
+                document.getElementById('perplexity').textContent = Math.round(analysis.real_perplexity);
+            }
+            
+            // Show real-time AI likelihood
+            if (analysis.ai_likelihood) {
+                const issuesList = document.getElementById('issues-list');
+                issuesList.innerHTML = `
+                    <div class="issue-item ${analysis.ai_likelihood.includes('High') ? 'high' : 'low'}">
+                        <div class="issue-type">REAL-TIME ANALYSIS</div>
+                        <div class="issue-reason">AI Likelihood: ${analysis.ai_likelihood}</div>
+                        <div class="issue-suggestion">${analysis.real_perplexity ? `Perplexity: ${Math.round(analysis.real_perplexity)}` : 'Keep writing for deeper analysis'}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Existing functions with enhancements
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'users') {
+                loadUserProfiles();
+            } else if (tabName === 'admin-panel' && isAdmin) {
+                loadAdminStats();
+            }
+        }
+        
+        function debouncedAnalyze() {
+            clearTimeout(analyzeTimeout);
+            analyzeTimeout = setTimeout(() => {
+                const text = document.getElementById('text-input').value;
+                if (text.length > 10 && websocket && websocket.readyState === WebSocket.OPEN) {
+                    websocket.send(JSON.stringify({
+                        type: 'text_update',
+                        text: text,
+                        user_id: currentUserId
+                    }));
+                }
+                if (text.length > 50) {
+                    analyzeText();
+                }
+            }, 1000);
+        }
+        
+        async function analyzeText() {
+            const text = document.getElementById('text-input').value;
+            const userId = document.getElementById('user-id').value || 'default';
+            
+            if (!text.trim()) return;
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: text,
+                        analysis_types: ["all"],
+                        user_id: userId
+                    })
+                });
+                
+                const result = await response.json();
+                updateAnalysisDisplay(result);
+            } catch (error) {
+                console.error('Analysis error:', error);
+            }
+        }
+        
+        function updateAnalysisDisplay(analysis) {
+            // Update score
+            const scoreValue = document.getElementById('score-value');
+            const scoreCircle = document.getElementById('score-circle');
+            scoreValue.textContent = Math.round(analysis.score);
+            scoreCircle.style.setProperty('--score-percent', `${analysis.score}%`);
+            
+            // Update details
+            document.getElementById('style-match').textContent = `${analysis.style_match.toFixed(1)}%`;
+            document.getElementById('issues-count').textContent = analysis.issues.length;
+            
+            if (analysis.real_perplexity) {
+                document.getElementById('perplexity').textContent = Math.round(analysis.real_perplexity);
+            }
+            
+            // Update issues list
+            const issuesList = document.getElementById('issues-list');
+            if (analysis.issues.length === 0) {
+                issuesList.innerHTML = '<div class="issue-item low">✅ No issues found! Your writing sounds authentic and human.</div>';
+            } else {
+                issuesList.innerHTML = analysis.issues.map(issue => `
+                    <div class="issue-item ${issue.severity || 'medium'} ${issue.type === 'signature_phrase' ? 'info' : ''}">
+                        <div class="issue-type">${issue.type?.replace(/_/g, ' ').toUpperCase()}</div>
+                        <div class="issue-reason">${issue.reason}</div>
+                        <div class="issue-suggestion">💡 ${issue.suggestion}</div>
+                    </div>
+                `).join('');
+            }
+            
+            // Show DNA section if available
+            if (analysis.writing_dna) {
+                showWritingDNA(analysis.writing_dna);
+            }
+        }
+        
+        async function trainStyle() {
+            const userId = document.getElementById('user-id').value || 'default';
+            const text = document.getElementById('text-input').value;
+            
+            if (!text.trim()) {
+                alert('Please enter some text to train on');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/train-style', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        documents: [text],
+                        user_id: userId
+                    })
+                });
+                
+                const result = await response.json();
+                alert(`Training started: ${result.message}`);
+            } catch (error) {
+                console.error('Training error:', error);
+            }
+        }
+        
+        async function createWritingDNA() {
+            const userId = document.getElementById('user-id').value || 'default';
+            const text = document.getElementById('text-input').value;
+            
+            if (!text.trim()) {
+                alert('Please enter some text to create writing DNA');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/create-writing-dna', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        documents: [text],
+                        user_id: userId
+                    })
+                });
+                
+                const result = await response.json();
+                alert(`Writing DNA created: ${result.message}`);
+                getWritingReport();
+            } catch (error) {
+                console.error('DNA creation error:', error);
+            }
+        }
+        
+        async function loadAdminStats() {
+            if (!isAdmin) return;
+            
+            try {
+                // Load basic stats
+                const statsResponse = await fetch('/admin/');
+                const stats = await statsResponse.json();
+                
+                document.getElementById('admin-stats').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.total_analyses || 0}</div>
+                        <div class="stat-label">Total Analyses</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.total_users || 0}</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.today_analyses || 0}</div>
+                        <div class="stat-label">Today's Analyses</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.active_users?.length || 0}</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                `;
+                
+                // Load recent analyses
+                const analysesResponse = await fetch('/admin/analyses?limit=5');
+                const analyses = await analysesResponse.json();
+                
+                document.getElementById('recent-analyses').innerHTML = analyses.analyses?.map(analysis => `
+                    <div style="padding: 5px 0; border-bottom: 1px solid var(--border);">
+                        <div>${analysis.user_id} - Score: ${Math.round(analysis.score)}</div>
+                        <small style="color: #94a3b8;">${new Date(analysis.timestamp).toLocaleString()}</small>
+                    </div>
+                `).join('') || '<p>No analyses found</p>';
+                
+            } catch (error) {
+                console.error('Admin stats error:', error);
+                document.getElementById('admin-stats').innerHTML = '<p>Error loading admin stats</p>';
+            }
+        }
+        
+        // Keep all your existing functions (clearText, loadExample, uploadDocuments, getWritingReport, showWritingDNA, loadUserProfile, clearUserProfile, loadUserProfiles)
+        // ... (include all the existing functions from your previous code)
+
+        // Initialize auth overlay
+        document.getElementById('authOverlay').style.display = 'flex';
+        
+    </script>
+</body>
+</html>
